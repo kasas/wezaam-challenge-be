@@ -28,6 +28,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class WithdrawalController {
+    public static final String WITHDRAWAL_EXEC_ASAP = "ASAP";
     private final UserController userController;
     private final WithdrawalService withdrawalService;
     private final PaymentMethodRepository paymentMethodRepository;
@@ -52,7 +53,7 @@ public class WithdrawalController {
         }
 
         Object body;
-        if (executeAt.equals("ASAP")) {
+        if (executeAt.equals(WITHDRAWAL_EXEC_ASAP)) {
             Withdrawal withdrawal = new Withdrawal();
             withdrawal.setUserId(userId);
             withdrawal.setPaymentMethodId(paymentMethodId);
