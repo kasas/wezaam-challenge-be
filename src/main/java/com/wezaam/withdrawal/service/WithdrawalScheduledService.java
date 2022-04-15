@@ -27,14 +27,14 @@ public class WithdrawalScheduledService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final EventsService eventsService;
 
-    public WithdrawalScheduled schedule(Long userId, Long paymentMethodId, Double amount, String executedAt){
+    public WithdrawalScheduled schedule(Long userId, Long paymentMethodId, Double amount, Instant executedAt){
 
         WithdrawalScheduled withdrawal = WithdrawalScheduled.builder()
                 .status(WithdrawalStatus.PENDING)
                 .userId(userId)
                 .paymentMethodId(paymentMethodId)
                 .createdAt(Instant.now())
-                .executeAt(Instant.parse(executedAt))
+                .executeAt(executedAt)
                 .amount(amount)
                 .build();
 
@@ -59,6 +59,7 @@ public class WithdrawalScheduledService {
         if (paymentMethod != null) {
             try {
                 var transactionId = withdrawalProcessingService.sendToProcessing(withdrawal.getAmount(), paymentMethod);
+                withdrawal.setTransactionId(transactionId);
                 withdrawal.setStatus(WithdrawalStatus.PROCESSING);
                 withdrawal.setTransactionId(transactionId);
                 withdrawalScheduledRepository.save(withdrawal);

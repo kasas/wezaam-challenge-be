@@ -60,6 +60,7 @@ public class WithdrawalService {
                 Withdrawal savedWithdrawal = savedWithdrawalOptional.get();
                 try {
                     var transactionId = withdrawalProcessingService.sendToProcessing(withdrawal.getAmount(), paymentMethod);
+                    savedWithdrawal.setTransactionId(transactionId);
                     savedWithdrawal.setStatus(WithdrawalStatus.PROCESSING);
                     savedWithdrawal.setTransactionId(transactionId);
                     withdrawalRepository.save(savedWithdrawal);

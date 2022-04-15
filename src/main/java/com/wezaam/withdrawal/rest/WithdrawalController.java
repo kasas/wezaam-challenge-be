@@ -44,6 +44,7 @@ public class WithdrawalController {
         if (userId == null || paymentMethodId == null || amount == null || executeAt == null) {
             return new ResponseEntity("Required params are missing", HttpStatus.BAD_REQUEST);
         }
+
         if(!userRepository.findById(userId).isPresent()){
             return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
         }
@@ -55,7 +56,13 @@ public class WithdrawalController {
         if (executeAt.equals(WITHDRAWAL_EXEC_ASAP)) {
             body = withdrawalService.create(userId, paymentMethodId, amount);
         } else {
-            body = withdrawalScheduledService.schedule(userId,paymentMethodId,amount, executeAt);
+            try {
+                Instant executeAtInstant = Instant.parse(executeAt);
+                body = withdrawalScheduledService.schedule(userId, paymentMethodId, amount, executeAtInstant);
+            }
+            catch (Exception e){
+                return new ResponseEntity("Incorrect ExecutedAt Date", HttpStatus.BAD_REQUEST);
+            }
         }
 
         return new ResponseEntity(body, HttpStatus.OK);
@@ -63,12 +70,9 @@ public class WithdrawalController {
 
     @GetMapping("/find-all-withdrawals")
     public ResponseEntity findAll() {
-        List<Withdrawal> withdrawals = withdrawalService.findAll();
-        List<WithdrawalScheduled> withdrawalsScheduled = withdrawalScheduledService.findAll();
         List<Object> result = new ArrayList<>();
-        result.addAll(withdrawals);
-        result.addAll(withdrawalsScheduled);
-
+        result.addAll(withdrawalService.findAll());
+        result.addAll(withdrawalScheduledService.findAll());
         return new ResponseEntity(result, HttpStatus.OK);
     }
 }

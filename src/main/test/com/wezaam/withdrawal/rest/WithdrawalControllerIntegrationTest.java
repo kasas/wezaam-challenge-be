@@ -31,7 +31,7 @@ class WithdrawalControllerIntegrationTest {
     @Test
     void itShouldHaveEmptyWidthdrawals() {
 
-        //given empty database
+        //given initial database
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
@@ -46,7 +46,7 @@ class WithdrawalControllerIntegrationTest {
 
     @Test
     void itShouldHaveTheWithdrawalInserted() {
-        //given empty database
+        //given initial database
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
@@ -63,7 +63,7 @@ class WithdrawalControllerIntegrationTest {
 
     @Test
     void itShouldHaveTheWithdrawalScheduledInserted() {
-        //given empty database
+        //given initial database
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
@@ -79,19 +79,25 @@ class WithdrawalControllerIntegrationTest {
     }
 
     @Test
-    void itShouldHaveBadRequestWhenUserIsNotSet() {
-        //given empty database
+    void itShouldHaveBadRequestWhenSomeParameterIsNotSet() {
+        //given initial database
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
-        ResponseEntity response = controller.create(null, 1L, 100D, "2022-04-15T10:24:06.890598Z");
+        ResponseEntity response1 = controller.create(null, 1L, 100D, "2022-04-15T10:24:06.890598Z");
+        ResponseEntity response2 = controller.create(1L, null, 100D, "2022-04-15T10:24:06.890598Z");
+        ResponseEntity response3 = controller.create(1L, 1L, null, "2022-04-15T10:24:06.890598Z");
+        ResponseEntity response4 = controller.create(1L, 1L, 100D, null);
 
         //then
-        assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,response1.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,response2.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,response3.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,response4.getStatusCode());
     }
     @Test
-    void itShouldHaveBadRequestWhenUserIdNotCorrect() {
-        //given empty database
+    void itShouldHaveNotFoundWhenUserIdNotCorrect() {
+        //given initial database
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
@@ -101,8 +107,8 @@ class WithdrawalControllerIntegrationTest {
         assertEquals(HttpStatus.NOT_FOUND,response.getStatusCode());
     }
     @Test
-    void itShouldHaveBadRequestWhenPaymentMethodIdNotCorrect() {
-        //given empty database
+    void itShouldHaveNotFoundWhenPaymentMethodIdNotCorrect() {
+        //given initial database
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
@@ -110,5 +116,17 @@ class WithdrawalControllerIntegrationTest {
 
         //then
         assertEquals(HttpStatus.NOT_FOUND,response.getStatusCode());
+    }
+
+    @Test
+    void itShouldHaveBadRequestWhenExecuteAtNotCorrect() {
+        //given initial database
+        WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
+
+        //when
+        ResponseEntity response = controller.create(1L, 1L, 100D, "2022-04-15");
+
+        //then
+        assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
     }
 }

@@ -30,17 +30,19 @@ The user maxWithdrawalAmount field is not used anywhere, which should be a test 
 
 Controllers must be a component that just receive and send data. There should not be any process inside the Controller. 
 
-In order to be more testeable, it would be great to have the params inserted on the parameters of function and not into the request.
+In order to be more testable, it would be great to have the params inserted on the parameters of function and not into the request.
 
 In order to change that we must refactor this processing into a service.
 
 ##DECISIONS MADE
 
-We are going to use RabbitMQ as a broker of messages between the services as it is one of the most used async queue frameworks. There would be also another possibilites as Kafka or Amazon AWS Simple Queue.
+I am going to use RabbitMQ as a broker of messages between the services as it is one of the most used async queue frameworks. There would be also another possibilites as Kafka or Amazon AWS Simple Queue.
 
 ##REFACTORING OF CODE
 
 First of all, we have introduced lombok annotations in some classes and refactor the injection of clases of the controllers by using constructors instead of @Autowired beans. This way, it would be easier to test the Controllers of the class.
+
+I have introduced a new Service to separate Withdrawal and WithdrawalScheduled processes. I also have change the WithdrawallController in order to be in charge of just receiving params, checking them and then sending the response. 
 
 ## TDD
 
