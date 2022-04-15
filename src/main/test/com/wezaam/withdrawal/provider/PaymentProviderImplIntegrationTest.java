@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,6 +24,7 @@ class PaymentProviderImplIntegrationTest {
     @Autowired
     private TransactionEventService eventService;
 
+    private CountDownLatch lock = new CountDownLatch(1);
     @Test
     public void itShouldCreateATransaction(){
         //given empty repository
@@ -48,8 +50,10 @@ class PaymentProviderImplIntegrationTest {
         provider.process(transaction.get());
 
         //then
-        assertEquals(TransactionStatus.PENDING, transaction.get().getStatus());
-        executor.getThreadPoolExecutor().awaitTermination(3, TimeUnit.SECONDS);
+        try {
+            lock.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+        }
         transaction = repository.findById(transaction.get().getId());
         assertEquals(TransactionStatus.SUCCESS, transaction.get().getStatus());
 
