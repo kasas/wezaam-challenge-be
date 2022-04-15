@@ -6,12 +6,13 @@ import com.wezaam.withdrawal.model.WithdrawalType;
 import com.wezaam.withdrawal.model.dto.WithdrawalDTO;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 public class WithdrawalDTOFactory {
 
-    public WithdrawalDTO create(Withdrawal item){
+    public WithdrawalDTO createByWithdrawal(Withdrawal item){
+        if(item==null){
+            return WithdrawalDTO.builder().build();
+        }
         return WithdrawalDTO.builder()
                 .id(item.getId())
                 .transactionId(item.getTransactionId())
@@ -23,7 +24,10 @@ public class WithdrawalDTOFactory {
                 .build();
     }
 
-    public WithdrawalDTO create(WithdrawalScheduled item){
+    public WithdrawalDTO createByWithdrawalSchedule(WithdrawalScheduled item){
+        if(item==null){
+            return WithdrawalDTO.builder().build();
+        }
         return WithdrawalDTO.builder()
                 .id(item.getId())
                 .transactionId(item.getTransactionId())

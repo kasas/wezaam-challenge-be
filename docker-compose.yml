@@ -11,6 +11,24 @@ services:
     networks:
       - resolute
 
+  app-container:
+    image: cloudpay/wezaam-challenge
+    ports:
+      #  local : container expose
+      - "8080:7070"
+    environment:
+      - spring_rabbitmq_host=rabbitmq-container
+      - spring_rabbitmq_port=5672
+      - spring_rabbitmq_username=guest
+      - spring_rabbitmq_password=guest
+      - spring_profiles_active=docker
+      
+    networks:
+      - resolute
+    depends_on:
+      - rabbitmq-container
+
+
 networks:
   resolute:
     external:

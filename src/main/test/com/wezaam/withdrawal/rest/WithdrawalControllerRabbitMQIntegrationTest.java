@@ -46,7 +46,7 @@ class WithdrawalControllerRabbitMQIntegrationTest {
 
     @Test
     void itShouldHaveTheWithdrawalInsertedAndNotificationQueued() {
-        //given initial database
+        //given initial database and RabbitMQ started
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
@@ -73,7 +73,7 @@ class WithdrawalControllerRabbitMQIntegrationTest {
 
     @Test
     void itShouldHaveTheWithdrawalScheduledInsertedAndNotificationQueued() {
-        //given initial database
+        //given initial database and RabbitMQ started
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when

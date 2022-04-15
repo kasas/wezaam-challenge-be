@@ -10,11 +10,11 @@ I have also realized that the project has not provided any unit test neither any
 
 ##INSTALATION OF PLUGINS AND DEPENDENCIES
 
-We use jacoco maven plugin in order to see the coverage of the unit testing realised. We are going to use junit with mockito and jupiter in other to perform our unit testing.
+I use jacoco maven plugin in order to see the coverage of the unit testing realised. I am going to use junit with mockito and jupiter in other to perform our testing.
 
-We are going to specify the hypothesis of our test in order to iterate all over the solution to get the right solution.
+I am going to specify the hypothesis of our test in order to iterate all over the solution to get the right solution.
 
-We have also installed the lombok library in order to get rid of boilerplate code in Java.
+I have also installed the lombok library in order to get rid of boilerplate code in Java.
 
 
 ##COMMENTS
@@ -28,11 +28,16 @@ The user maxWithdrawalAmount field is not used anywhere, which should be a test 
 
 Controllers must be a component that just receive and send data. There should not be any process inside the Controller. 
 
-In order to be more testable, it would be great to have the params inserted on the parameters of function and not into the request.
+In order to be more testable, it would be great to have the params inserted on the parameters of function and not into the request, so I have refactored this processing into a service.
 
-In order to change that we must refactor this processing into a service.
+I have introduced a new Search on the WithdrawalScheduleRepository in order to find pending withdrawals. The current process was enqueueing all the time processed withdrawals.
 
-We have introduced a new Search on the WithdrawalScheduleRepository in order to find pending withdrawals. The current process was enqueueing all the time processed withdrawals.
+##REFACTORING OF CODE
+
+First of all, I have introduced lombok annotations in some classes and refactor the injection of classes of the controllers by using constructors instead of @Autowired beans. This way, it would be easier to test the Controllers of the class.
+
+I have introduced a new Service to separate Withdrawal and WithdrawalScheduled processes. I also have changed the WithdrawallController in order to be in charge of just receiving params, checking them and then sending the response.
+
 
 ##DECISIONS MADE
 
@@ -40,11 +45,12 @@ I am going to use RabbitMQ as a broker of messages between the services as it is
 
 Using RabbitMQ we can assure 100% of the notifications would be treated by the Consumer of the created Queue. If Notification Service is down, RabbitMQ will queue all messages until one consumer process them.
 
-##REFACTORING OF CODE
+On the other hand, if RabbitMQ service is down, the withdrawal will be enqueued in a memory queue. The good solution would be to persist the state of the notification in the DB. That way if the service is rebooted, you could also send 100% of the notifications. I have not done it, because I think it is not the aim of this challenge.
 
-First of all, we have introduced lombok annotations in some classes and refactor the injection of classes of the controllers by using constructors instead of @Autowired beans. This way, it would be easier to test the Controllers of the class.
+##SOLID PRINCIPLES
+Following the SOLID principles, We have to decouple all the logic of our service in order to maintain the cleanability and the maintainability of the source code. I have created interfaces and use injection in our project in order to decouple the software and maintain the single responsibility principle. Each class created has just one responsibility.
 
-I have introduced a new Service to separate Withdrawal and WithdrawalScheduled processes. I also have change the WithdrawallController in order to be in charge of just receiving params, checking them and then sending the response. 
+However, there are some improvements to be made on the code in order to follow the SOLID principles. One of them could be creating interfaces with all the contracts of the services as I have done in the PaymentProvider interface. This way all the providers could be change with another who implements its contract.
 
 ##TDD
 
@@ -69,10 +75,15 @@ TDD is based on writing a failing test, writing code in order to pass the test, 
 
 ##RABBIT-MQ
 
-Rabbit-mq has been configured to have 2 queues, one for transaction status and the other one for Notifications when a withdraw changes its status. 
+Rabbit-mq has been configured to have 2 queues, one for transaction status and the other one for Notifications when a withdrawal changes its status. 
 
-We have to think what happens when RabbitMQ is down, that's why there is an internal queue where the DTO of the withdrawal are enqueued in order to be sent to RabbitMQ.
+PaymentProvider could be an external service or microservice, but for the challenge I have provided a package with all its entities and services. It could be isolated in another microservice if it would be needed.
 
-PaymentProvider could be an external service or microservice, but for the challenge we have provide a package with all its entities and services. It could be isolated in another microservice if it would be needed.
+I had to think what happens when RabbitMQ is down, that's why there is an internal queue where the DTO of the withdrawal are enqueued in order to be sent to RabbitMQ when it is up again.
 
+Admin console of RabbitMQ could be accessed on http://localhost:15672/. Here we could see the Queues status.
+
+##DOCKER
+
+There is a build.sh file in the project in order to create the docker image and put all services up. The port exposed of the service would be 8080 in case of using the docker-compose.yml
 

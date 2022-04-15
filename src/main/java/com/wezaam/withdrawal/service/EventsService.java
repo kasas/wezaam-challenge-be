@@ -3,7 +3,6 @@ package com.wezaam.withdrawal.service;
 import com.wezaam.withdrawal.config.NotificationMQConfig;
 import com.wezaam.withdrawal.model.Withdrawal;
 import com.wezaam.withdrawal.model.WithdrawalScheduled;
-import com.wezaam.withdrawal.model.WithdrawalStatus;
 import com.wezaam.withdrawal.model.dto.WithdrawalDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -11,7 +10,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -42,7 +40,7 @@ public class EventsService {
         // build and send an event in message queue async
         try {
             if (withdrawal != null) {
-                WithdrawalDTO dto = factory.create(withdrawal);
+                WithdrawalDTO dto = factory.createByWithdrawal(withdrawal);
                 template.convertAndSend(NotificationMQConfig.EXCHANGE, NotificationMQConfig.ROUTING_KEY, dto);
             }
         } catch (Exception e) {
@@ -61,7 +59,7 @@ public class EventsService {
         // build and send an event in message queue async
         try {
             if (withdrawal != null) {
-                WithdrawalDTO dto = factory.create(withdrawal);
+                WithdrawalDTO dto = factory.createByWithdrawalSchedule(withdrawal);
                 template.convertAndSend(NotificationMQConfig.EXCHANGE, NotificationMQConfig.ROUTING_KEY, dto);
             }
         } catch (Exception e) {
