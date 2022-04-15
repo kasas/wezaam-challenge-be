@@ -8,6 +8,7 @@ import com.wezaam.withdrawal.model.WithdrawalStatus;
 import com.wezaam.withdrawal.repository.PaymentMethodRepository;
 import com.wezaam.withdrawal.repository.WithdrawalRepository;
 import com.wezaam.withdrawal.repository.WithdrawalScheduledRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,18 +19,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
+@RequiredArgsConstructor
 public class WithdrawalService {
 
-    @Autowired
-    private WithdrawalRepository withdrawalRepository;
-    @Autowired
-    private WithdrawalScheduledRepository withdrawalScheduledRepository;
-    @Autowired
-    private WithdrawalProcessingService withdrawalProcessingService;
-    @Autowired
-    private PaymentMethodRepository paymentMethodRepository;
-    @Autowired
-    private EventsService eventsService;
+    private final WithdrawalRepository withdrawalRepository;
+    private final WithdrawalScheduledRepository withdrawalScheduledRepository;
+    private final WithdrawalProcessingService withdrawalProcessingService;
+    private final PaymentMethodRepository paymentMethodRepository;
+    private final EventsService eventsService;
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
