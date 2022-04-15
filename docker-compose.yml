@@ -1,0 +1,17 @@
+version: "3"
+services:
+  rabbitmq-container:
+    image: rabbitmq:3.9.11-management-alpine
+    hostname: rabbitmq-container
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - "TZ=@timezone@"
+    networks:
+      - resolute
+
+networks:
+  resolute:
+    external:
+      name: resolute

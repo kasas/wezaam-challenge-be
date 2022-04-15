@@ -50,7 +50,7 @@ public class WithdrawalScheduledService {
 
     @Scheduled(fixedDelay = 5000)
     public void run() {
-        withdrawalScheduledRepository.findAllByExecuteAtBefore(Instant.now())
+        withdrawalScheduledRepository.findAllByExecuteAtBeforeAndStatus(Instant.now(), WithdrawalStatus.PENDING)
                 .forEach(this::processScheduled);
     }
 
@@ -61,20 +61,18 @@ public class WithdrawalScheduledService {
                 var transactionId = withdrawalProcessingService.sendToProcessing(withdrawal.getAmount(), paymentMethod);
                 withdrawal.setTransactionId(transactionId);
                 withdrawal.setStatus(WithdrawalStatus.PROCESSING);
-                withdrawal.setTransactionId(transactionId);
                 withdrawalScheduledRepository.save(withdrawal);
-                eventsService.send(withdrawal);
             } catch (Exception e) {
                 if (e instanceof TransactionException) {
                     withdrawal.setStatus(WithdrawalStatus.FAILED);
                     withdrawalScheduledRepository.save(withdrawal);
-                    eventsService.send(withdrawal);
                 } else {
                     withdrawal.setStatus(WithdrawalStatus.INTERNAL_ERROR);
                     withdrawalScheduledRepository.save(withdrawal);
-                    eventsService.send(withdrawal);
                 }
             }
+            //We send the final status of the withdrawal
+            eventsService.send(withdrawal);
         }
     }
 

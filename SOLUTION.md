@@ -34,9 +34,13 @@ In order to be more testable, it would be great to have the params inserted on t
 
 In order to change that we must refactor this processing into a service.
 
+We have introduced a new Search on the WithdrawalScheduleRepository in order to find pending withdrawals. The current process was enqueueing all the time processed withdrawals.
+
 ##DECISIONS MADE
 
 I am going to use RabbitMQ as a broker of messages between the services as it is one of the most used async queue frameworks. There would be also another possibilites as Kafka or Amazon AWS Simple Queue.
+
+Using RabbitMQ we can assure 100% of the notifications would be treated by the Consumer of the created Queue. If Notification Service is down, RabbitMQ will queue all messages until one consumer process them.
 
 ##REFACTORING OF CODE
 
@@ -44,7 +48,7 @@ First of all, we have introduced lombok annotations in some classes and refactor
 
 I have introduced a new Service to separate Withdrawal and WithdrawalScheduled processes. I also have change the WithdrawallController in order to be in charge of just receiving params, checking them and then sending the response. 
 
-## TDD
+##TDD
 
 We are going to build our test at the first stage of the development. The aim of the challenge is solving this issue:
 > We noticed that in current solution we are losing some outgoing events about withdrawals. We MUST 100% notify listeners regarding any withdrawal statuses. That means a new solution should be designed to cover the requirement. For example a withdrawal has been sent to provider, we updated a status to processing in database, and then we have to send a notification. What if the notification was failed to send (e.q. connection issues to a messaging provider)?

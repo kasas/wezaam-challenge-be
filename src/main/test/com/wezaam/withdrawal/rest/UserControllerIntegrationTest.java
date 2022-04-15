@@ -24,20 +24,23 @@ class UserControllerIntegrationTest {
     UserRepository userRepository;
 
     @Test
-    void findAll() {
+    void itShouldCheckThatFindUsers() {
+        //given default database
         UserController controller = new UserController(userRepository);
-
+        //when
         List<User> users = controller.findAll();
-
+        //then
         assertNotNull(users);
+        assertTrue(users.size() > 0);
     }
 
     @Test
     void itShouldCheckThatUserExist() {
+        //given default database
         UserController controller = new UserController(userRepository);
-
+        //when
         User result = controller.findById(1L);
-
+        //then
         assertNotNull(result);
         assertEquals(1L, result.getId());
 

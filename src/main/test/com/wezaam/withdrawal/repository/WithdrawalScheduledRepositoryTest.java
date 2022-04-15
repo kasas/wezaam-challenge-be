@@ -42,4 +42,34 @@ class WithdrawalScheduledRepositoryTest {
         assertEquals(1, items.size(), "It has expected number of scheduled withdrawals");
 
     }
+
+    @Test
+    void itShouldTestThereIsWithdrawalScheduledAndPending() {
+        // given
+        Instant now = Instant.now();
+        WithdrawalScheduled item = WithdrawalScheduled.builder().id(System.nanoTime())
+                .createdAt(now)
+                .executeAt(now)
+                .amount(100d)
+                .paymentMethodId(1L)
+                .userId(1L).status(WithdrawalStatus.PENDING).build();
+        repository.save(item);
+        item = WithdrawalScheduled.builder().id(System.nanoTime())
+                .createdAt(now)
+                .executeAt(now)
+                .amount(100d)
+                .paymentMethodId(1L)
+                .userId(1L).status(WithdrawalStatus.FAILED).build();
+
+        repository.save(item);
+
+        // when
+
+        List<WithdrawalScheduled> items = repository.findAllByExecuteAtBeforeAndStatus(Instant.now(), WithdrawalStatus.PENDING);
+
+        // then
+        assertNotNull(items);
+        assertEquals(1, items.size(), "It has expected number of scheduled withdrawals");
+
+    }
 }

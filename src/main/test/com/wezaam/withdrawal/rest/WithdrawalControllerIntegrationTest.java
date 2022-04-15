@@ -129,4 +129,16 @@ class WithdrawalControllerIntegrationTest {
         //then
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
     }
+
+    @Test
+    void itShouldHaveBadRequestWhenAmountExceedMaximum() {
+        //given initial database
+        WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
+
+        //when
+        ResponseEntity response = controller.create(1L, 1L, Double.MAX_VALUE, "ASAP");
+
+        //then
+        assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
+    }
 }

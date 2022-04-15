@@ -62,20 +62,17 @@ public class WithdrawalService {
                     var transactionId = withdrawalProcessingService.sendToProcessing(withdrawal.getAmount(), paymentMethod);
                     savedWithdrawal.setTransactionId(transactionId);
                     savedWithdrawal.setStatus(WithdrawalStatus.PROCESSING);
-                    savedWithdrawal.setTransactionId(transactionId);
                     withdrawalRepository.save(savedWithdrawal);
-                    eventsService.send(savedWithdrawal);
                 } catch (Exception e) {
                     if (e instanceof TransactionException) {
                         savedWithdrawal.setStatus(WithdrawalStatus.FAILED);
                         withdrawalRepository.save(savedWithdrawal);
-                        eventsService.send(savedWithdrawal);
                     } else {
                         savedWithdrawal.setStatus(WithdrawalStatus.INTERNAL_ERROR);
                         withdrawalRepository.save(savedWithdrawal);
-                        eventsService.send(savedWithdrawal);
                     }
                 }
+                eventsService.send(savedWithdrawal);
             }
         });
     }
