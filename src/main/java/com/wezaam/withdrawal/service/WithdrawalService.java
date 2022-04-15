@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,13 +24,25 @@ import java.util.concurrent.Executors;
 public class WithdrawalService {
 
     private final WithdrawalRepository withdrawalRepository;
-    private final WithdrawalScheduledRepository withdrawalScheduledRepository;
     private final WithdrawalProcessingService withdrawalProcessingService;
     private final PaymentMethodRepository paymentMethodRepository;
     private final EventsService eventsService;
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
+    public Withdrawal create(Long userId, Long paymentMethodId, Double amount){
+
+        Withdrawal withdrawal = new Withdrawal();
+        withdrawal.setUserId(userId);
+        withdrawal.setPaymentMethodId(paymentMethodId);
+        withdrawal.setAmount(amount);
+        withdrawal.setCreatedAt(Instant.now());
+        withdrawal.setStatus(WithdrawalStatus.PENDING);
+
+        create(withdrawal);
+
+        return withdrawal;
+    }
     public void create(Withdrawal withdrawal) {
         Withdrawal pendingWithdrawal = withdrawalRepository.save(withdrawal);
 
@@ -66,36 +79,11 @@ public class WithdrawalService {
         });
     }
 
-    public void schedule(WithdrawalScheduled withdrawalScheduled) {
-        withdrawalScheduledRepository.save(withdrawalScheduled);
+    public List<Withdrawal> findAll() {
+        return withdrawalRepository.findAll();
     }
 
-    @Scheduled(fixedDelay = 5000)
-    public void run() {
-        withdrawalScheduledRepository.findAllByExecuteAtBefore(Instant.now())
-                .forEach(this::processScheduled);
-    }
-
-    private void processScheduled(WithdrawalScheduled withdrawal) {
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(withdrawal.getPaymentMethodId()).orElse(null);
-        if (paymentMethod != null) {
-            try {
-                var transactionId = withdrawalProcessingService.sendToProcessing(withdrawal.getAmount(), paymentMethod);
-                withdrawal.setStatus(WithdrawalStatus.PROCESSING);
-                withdrawal.setTransactionId(transactionId);
-                withdrawalScheduledRepository.save(withdrawal);
-                eventsService.send(withdrawal);
-            } catch (Exception e) {
-                if (e instanceof TransactionException) {
-                    withdrawal.setStatus(WithdrawalStatus.FAILED);
-                    withdrawalScheduledRepository.save(withdrawal);
-                    eventsService.send(withdrawal);
-                } else {
-                    withdrawal.setStatus(WithdrawalStatus.INTERNAL_ERROR);
-                    withdrawalScheduledRepository.save(withdrawal);
-                    eventsService.send(withdrawal);
-                }
-            }
-        }
+    public Optional<Withdrawal> findById(Long id) {
+        return withdrawalRepository.findById(id);
     }
 }

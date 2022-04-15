@@ -4,8 +4,10 @@ import com.wezaam.withdrawal.model.Withdrawal;
 import com.wezaam.withdrawal.model.WithdrawalScheduled;
 import com.wezaam.withdrawal.model.WithdrawalStatus;
 import com.wezaam.withdrawal.repository.PaymentMethodRepository;
+import com.wezaam.withdrawal.repository.UserRepository;
 import com.wezaam.withdrawal.repository.WithdrawalRepository;
 import com.wezaam.withdrawal.repository.WithdrawalScheduledRepository;
+import com.wezaam.withdrawal.service.WithdrawalScheduledService;
 import com.wezaam.withdrawal.service.WithdrawalService;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
@@ -29,23 +31,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WithdrawalController {
     public static final String WITHDRAWAL_EXEC_ASAP = "ASAP";
-    private final UserController userController;
+    private final UserRepository userRepository;
     private final WithdrawalService withdrawalService;
+    private final WithdrawalScheduledService withdrawalScheduledService;
     private final PaymentMethodRepository paymentMethodRepository;
-    private final WithdrawalRepository withdrawalRepository;
-    private final WithdrawalScheduledRepository withdrawalScheduledRepository;
 
     @PostMapping("/create-withdrawals")
-    public ResponseEntity create(HttpServletRequest request, @RequestParam(name = "userId") Long userId,
+    public ResponseEntity create(@RequestParam(name = "userId") Long userId,
                                  @RequestParam(name = "paymentMethodId") Long paymentMethodId,
                                  @RequestParam(name = "amount") Double amount,
                                  @RequestParam(name = "executeAt") String executeAt) {
         if (userId == null || paymentMethodId == null || amount == null || executeAt == null) {
             return new ResponseEntity("Required params are missing", HttpStatus.BAD_REQUEST);
         }
-        try {
-            userController.findById(userId);
-        } catch (Exception e) {
+        if(!userRepository.findById(userId).isPresent()){
             return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
         }
         if (!paymentMethodRepository.findById(paymentMethodId).isPresent()) {
@@ -54,24 +53,9 @@ public class WithdrawalController {
 
         Object body;
         if (executeAt.equals(WITHDRAWAL_EXEC_ASAP)) {
-            Withdrawal withdrawal = new Withdrawal();
-            withdrawal.setUserId(userId);
-            withdrawal.setPaymentMethodId(paymentMethodId);
-            withdrawal.setAmount(amount);
-            withdrawal.setCreatedAt(Instant.now());
-            withdrawal.setStatus(WithdrawalStatus.PENDING);
-            withdrawalService.create(withdrawal);
-            body = withdrawal;
+            body = withdrawalService.create(userId, paymentMethodId, amount);
         } else {
-            WithdrawalScheduled withdrawalScheduled = new WithdrawalScheduled();
-            withdrawalScheduled.setUserId(userId);
-            withdrawalScheduled.setPaymentMethodId(paymentMethodId);
-            withdrawalScheduled.setAmount(amount);
-            withdrawalScheduled.setCreatedAt(Instant.now());
-            withdrawalScheduled.setExecuteAt(Instant.parse(executeAt));
-            withdrawalScheduled.setStatus(WithdrawalStatus.PENDING);
-            withdrawalService.schedule(withdrawalScheduled);
-            body = withdrawalScheduled;
+            body = withdrawalScheduledService.schedule(userId,paymentMethodId,amount, executeAt);
         }
 
         return new ResponseEntity(body, HttpStatus.OK);
@@ -79,8 +63,8 @@ public class WithdrawalController {
 
     @GetMapping("/find-all-withdrawals")
     public ResponseEntity findAll() {
-        List<Withdrawal> withdrawals = withdrawalRepository.findAll();
-        List<WithdrawalScheduled> withdrawalsScheduled = withdrawalScheduledRepository.findAll();
+        List<Withdrawal> withdrawals = withdrawalService.findAll();
+        List<WithdrawalScheduled> withdrawalsScheduled = withdrawalScheduledService.findAll();
         List<Object> result = new ArrayList<>();
         result.addAll(withdrawals);
         result.addAll(withdrawalsScheduled);
