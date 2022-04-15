@@ -12,18 +12,16 @@ I have also realized that the project has not provided any unit test neither any
 
 We use jacoco maven plugin in order to see the coverage of the unit testing realised. We are going to use junit with mockito and jupiter in other to perform our unit testing.
 
-We are going to specify the hyphotesis of our test in order to iterate all over the solution to get the right solution.
+We are going to specify the hypothesis of our test in order to iterate all over the solution to get the right solution.
 
 We have also installed the lombok library in order to get rid of boilerplate code in Java.
-
 
 
 ##COMMENTS
 
 As the swagger plugin is installed we can access to our swagger documentation from http://localhost:7070/swagger-ui.html and import it to Postman in order to test the collection with it.
 
-The user maxWithdrawalAmount field is not used anywhere, which should be a test that should be done, out of the scope of this challenge.
-
+The user maxWithdrawalAmount field is not used anywhere, which should be a test that should be done. This check has been introduced on WithdrawalController.
 
 
 ##CRITICAL CHANGES
@@ -38,13 +36,13 @@ We have introduced a new Search on the WithdrawalScheduleRepository in order to 
 
 ##DECISIONS MADE
 
-I am going to use RabbitMQ as a broker of messages between the services as it is one of the most used async queue frameworks. There would be also another possibilites as Kafka or Amazon AWS Simple Queue.
+I am going to use RabbitMQ as a broker of messages between the services as it is one of the most used async queue frameworks. There would be also another possibilities as Kafka or Amazon AWS Simple Queue.
 
 Using RabbitMQ we can assure 100% of the notifications would be treated by the Consumer of the created Queue. If Notification Service is down, RabbitMQ will queue all messages until one consumer process them.
 
 ##REFACTORING OF CODE
 
-First of all, we have introduced lombok annotations in some classes and refactor the injection of clases of the controllers by using constructors instead of @Autowired beans. This way, it would be easier to test the Controllers of the class.
+First of all, we have introduced lombok annotations in some classes and refactor the injection of classes of the controllers by using constructors instead of @Autowired beans. This way, it would be easier to test the Controllers of the class.
 
 I have introduced a new Service to separate Withdrawal and WithdrawalScheduled processes. I also have change the WithdrawallController in order to be in charge of just receiving params, checking them and then sending the response. 
 
@@ -53,16 +51,28 @@ I have introduced a new Service to separate Withdrawal and WithdrawalScheduled p
 We are going to build our test at the first stage of the development. The aim of the challenge is solving this issue:
 > We noticed that in current solution we are losing some outgoing events about withdrawals. We MUST 100% notify listeners regarding any withdrawal statuses. That means a new solution should be designed to cover the requirement. For example a withdrawal has been sent to provider, we updated a status to processing in database, and then we have to send a notification. What if the notification was failed to send (e.q. connection issues to a messaging provider)?
 
-TDD is based on writting a failing test, writting code in order to pass the test, and then iterate over it to get the better real working solution.
+TDD is based on writing a failing test, writing code in order to pass the test, and then iterate over it to get the better real working solution.
 
-*Requeriment*: We MUST 100% notify listeners regarding any withdrawal statuses 
+*Requirement*: We MUST 100% notify listeners regarding any withdrawal statuses 
 
 *Scenario*: 
     When: all the systems goes fine
     Then: all the process is going to be completed, status would be saved and notification sent.
-    
+
 *Scenario*:
-    When: user request widthdrawal and notification service is down
+    When: user request withdrawal and notification service is down
     Then: user must receive the response to his request and notification has to be queued to be consumed later.
-    
-    
+
+*Scenario*:
+   When: user request withdrawal and rabbitmq service is down
+   Then: user must receive the response to his request and withdrawal has to be queued in order to be sent later to RabbitMQ.
+
+##RABBIT-MQ
+
+Rabbit-mq has been configured to have 2 queues, one for transaction status and the other one for Notifications when a withdraw changes its status. 
+
+We have to think what happens when RabbitMQ is down, that's why there is an internal queue where the DTO of the withdrawal are enqueued in order to be sent to RabbitMQ.
+
+PaymentProvider could be an external service or microservice, but for the challenge we have provide a package with all its entities and services. It could be isolated in another microservice if it would be needed.
+
+

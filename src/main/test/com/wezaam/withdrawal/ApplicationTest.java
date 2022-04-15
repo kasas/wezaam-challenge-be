@@ -12,16 +12,4 @@ class ApplicationTest {
     @Test
     void contextLoads() {
     }
-
-    @Test
-    void itShouldRequestAWithdrawalWithNotificationConsumerReady(){
-
-        //given
-
-
-    }
-    @Test
-    void itShouldRequestAWithdrawalWithNotificationConsumerNotReady(){
-
-    }
 }
