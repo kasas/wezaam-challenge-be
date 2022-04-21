@@ -123,7 +123,7 @@ class WithdrawalControllerUnitTest
     void itShouldHaveNotFoundWhenUserIdNotCorrect() {
         //given initial database
         Mockito.when(userRepository.findById(-1L)).thenReturn(Optional.ofNullable(null));
-        
+
         WithdrawalController controller = new WithdrawalController(userRepository, withdrawalService, withdrawalScheduledService, paymentMethodRepository);
 
         //when
